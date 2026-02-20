@@ -5,10 +5,11 @@ uvicorn[standard]==0.34.0
 # Anthropic LLM SDK
 anthropic==0.43.0
 
-# Vector store for RAG
-chromadb==0.6.3
+# Vector store for RAG (FAISS — compatible with Python 3.14; ChromaDB is not)
+faiss-cpu==1.13.2
+numpy>=1.24
 
-# Embeddings model (used by ChromaDB for local embedding)
+# Embeddings model
 sentence-transformers==3.4.1
 
 # Environment variable management
