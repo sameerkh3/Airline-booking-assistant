@@ -14,8 +14,8 @@ __pycache__/
 .venv/
 venv/
 
-# ChromaDB local vector store data
-backend/chroma_db/
+# Local vector store data (FAISS)
+backend/rag_store/
 
 # Environment variables
 .env
