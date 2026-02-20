@@ -1,0 +1,15 @@
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+
+# Anthropic LLM SDK
+anthropic==0.43.0
+
+# Vector store for RAG
+chromadb==0.6.3
+
+# Embeddings model (used by ChromaDB for local embedding)
+sentence-transformers==3.4.1
+
+# Environment variable management
+python-dotenv==1.0.1
