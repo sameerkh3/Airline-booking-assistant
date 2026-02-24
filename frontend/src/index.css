@@ -32,10 +32,11 @@
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 
   /* Spacing / sizing */
-  --nav-height: 56px;
-  --panel-width: 420px;
-  --radius:      8px;
-  --radius-lg:   12px;
+  --nav-height:    56px;
+  --panel-width:   420px;
+  --radius:        8px;
+  --radius-lg:     12px;
+  --radius-pill:   999px;
 }
 
 html, body, #root {

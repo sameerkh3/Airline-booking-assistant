@@ -2,31 +2,42 @@
  * ChatWindow.jsx
  *
  * Renders:
- *   - Message history (user bubbles right, assistant bubbles left)
- *   - Loading indicator while agent is thinking
- *   - Fixed input area at the bottom (text input + submit button)
- *   - Six prompt template chips above the input
- *   - Reset button in the footer
+ *   Empty state  — large greeting + 2×2 prompt cards (only when no messages)
+ *   Chat state   — message history (user right, assistant left)
+ *   Input area   — floating pill-shaped input bar, always visible at bottom
  *
  * Props:
  *   messages  — { role: "user"|"assistant", content: string }[]
  *   loading   — bool, true while awaiting API response
  *   onSubmit  — (text: string) => void
- *   onReset   — () => void
  */
 
 import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import './ChatWindow.css'
 
-// Quick-start templates from PRD §4.2
-const PROMPT_CHIPS = [
-  'Find flights from Karachi to Dubai on March 15',
-  'Show me economy flights from Lahore to London next Friday',
-  'I want to travel from New York to Toronto, round trip, April 10 returning April 17',
-  'Find flights from Islamabad to Jeddah on April 5 with Saudi Airlines',
-  "What is Emirates' baggage policy for economy class?",
-  'What happens if I cancel a PIA flight 48 hours before departure?',
+// 4 prompt cards shown in the empty state (2×2 grid)
+const PROMPT_CARDS = [
+  {
+    title: 'Search flights',
+    preview: 'Find flights from Karachi to Dubai on March 15',
+    prompt: 'Find flights from Karachi to Dubai on March 15',
+  },
+  {
+    title: 'Economy deals',
+    preview: 'Show me economy flights from Lahore to London next Friday',
+    prompt: 'Show me economy flights from Lahore to London next Friday',
+  },
+  {
+    title: 'Baggage policy',
+    preview: "What is Emirates' baggage policy for economy class?",
+    prompt: "What is Emirates' baggage policy for economy class?",
+  },
+  {
+    title: 'Cancellation rules',
+    preview: 'What happens if I cancel a PIA flight 48 hours before departure?',
+    prompt: 'What happens if I cancel a PIA flight 48 hours before departure?',
+  },
 ]
 
 export default function ChatWindow({ messages, loading, onSubmit, onReset }) {
@@ -53,25 +64,44 @@ export default function ChatWindow({ messages, loading, onSubmit, onReset }) {
     }
   }
 
-  function handleChipClick(chip) {
+  function handleCardClick(prompt) {
     if (loading) return
-    onSubmit(chip)
-    // Keep input clear after chip submit
-    setInputText('')
+    onSubmit(prompt)
     inputRef.current?.focus()
   }
 
+  const isEmpty = messages.length === 0
+
   return (
     <div className="chat-window">
-      {/* ── Message history ── */}
+
+      {/* ── Message / empty state area ── */}
       <div className="messages-area">
-        {messages.length === 0 && (
+
+        {/* Empty state: greeting + prompt cards */}
+        {isEmpty && (
           <div className="empty-state">
-            <p className="empty-title">Hi, I'm Kāishǐ</p>
-            <p className="empty-subtitle">Your AI travel assistant. Ask me about flights or airline policies.</p>
+            <p className="greeting-title">Hello, Sameer</p>
+            <p className="greeting-subtitle">How can I help you today?</p>
+
+            <div className="cards-grid" role="list" aria-label="Quick-start prompts">
+              {PROMPT_CARDS.map((card, i) => (
+                <button
+                  key={i}
+                  className="prompt-card"
+                  onClick={() => handleCardClick(card.prompt)}
+                  disabled={loading}
+                  role="listitem"
+                >
+                  <p className="card-title">{card.title}</p>
+                  <p className="card-preview">{card.preview}</p>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
+        {/* Message history (chat mode) */}
         {messages.map((msg, i) => (
           <div key={i} className={`message-row ${msg.role}`}>
             <div className={`bubble ${msg.role}`}>
@@ -107,25 +137,9 @@ export default function ChatWindow({ messages, loading, onSubmit, onReset }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* ── Input area ── */}
+      {/* ── Floating pill input bar ── */}
       <div className="input-area">
-        {/* Prompt template chips */}
-        <div className="chips-row" role="list" aria-label="Quick-start prompts">
-          {PROMPT_CHIPS.map((chip, i) => (
-            <button
-              key={i}
-              className="chip"
-              onClick={() => handleChipClick(chip)}
-              disabled={loading}
-              role="listitem"
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
-
-        {/* Text input + buttons */}
-        <div className="input-row">
+        <div className="input-pill">
           <input
             ref={inputRef}
             type="text"
@@ -142,8 +156,9 @@ export default function ChatWindow({ messages, loading, onSubmit, onReset }) {
             onClick={handleSend}
             disabled={loading || !inputText.trim()}
             aria-label="Send message"
+            title="Send"
           >
-            Send
+            ↑
           </button>
           <button
             className="reset-btn"
@@ -156,6 +171,7 @@ export default function ChatWindow({ messages, loading, onSubmit, onReset }) {
           </button>
         </div>
       </div>
+
     </div>
   )
 }
