@@ -12,16 +12,19 @@ Endpoints:
 
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from agent.executor import run_agent
-from schemas import ChatRequest, ChatResponse, ResetResponse
+# Load .env from repo root (one level above backend/) so that all env vars —
+# including ANTHROPIC_API_KEY and ZAPIER_MCP_URL — are available regardless
+# of which directory uvicorn is launched from.
+load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env")
 
-# Load .env from the backend/ directory (or project root if not found there)
-load_dotenv()
+from agent.executor import run_agent  # noqa: E402
+from schemas import ChatRequest, ChatResponse, ResetResponse  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # In-memory conversation history

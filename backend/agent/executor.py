@@ -16,13 +16,17 @@ Tool implementations:
     - _send_email_stub()  logs and stubs; real MCP call wired in ABA-8
 """
 
+import asyncio
 import json
 import logging
 import os
 from pathlib import Path
 
 import anthropic
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
 
+from agent.email_template import build_email_html
 from agent.system_prompt import SYSTEM_PROMPT
 from agent.tools import TOOLS
 from rag.retriever import query_policy
@@ -32,7 +36,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-MODEL = "claude-haiku-3-5-20241022"
+MODEL = "claude-haiku-4-5-20251001"
 MAX_TOKENS = 4096
 MOCK_FLIGHTS_PATH = Path(__file__).parent.parent / "data" / "mock_flights.json"
 
@@ -150,17 +154,47 @@ def _rag_lookup(question: str, airline: str | None = None) -> str:
     return "\n\n---\n\n".join(parts)
 
 
-def _send_email_stub(to: str, subject: str, body_html: str) -> str:
+async def _send_email_async(to: str, subject: str, body_html: str) -> str:
     """
-    Email stub — logs the call and returns success.
+    Send an email via the Zapier MCP gmail_send_email tool.
 
-    The real MCP-based Gmail call is wired in ABA-8. This stub allows the
-    full confirmation flow (display summary → ask → confirm → send) to work
-    end-to-end even before the MCP server is integrated.
+    Connects to the Zapier MCP server (URL from ZAPIER_MCP_URL env var),
+    calls gmail_send_email with the HTML body, and returns a status string.
     """
-    logger.info("send_email stub called | to=%s | subject=%s", to, subject)
-    logger.debug("body_html length: %d chars", len(body_html))
-    return f"Email successfully sent to **{to}** with subject: \"{subject}\"."
+    zapier_url = os.environ.get("ZAPIER_MCP_URL")
+    if not zapier_url:
+        return "Email could not be sent: ZAPIER_MCP_URL is not configured."
+
+    # Wrap body_html in the full HTML email template
+    full_html = build_email_html(subject, body_html)
+
+    try:
+        async with streamablehttp_client(zapier_url) as (read, write, _):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                result = await session.call_tool(
+                    "gmail_send_email",
+                    arguments={
+                        "instructions": f"Send an email to {to} with subject '{subject}'",
+                        "to": [to],
+                        "subject": subject,
+                        "body": full_html,
+                        "body_type": "html",
+                    },
+                )
+        logger.info("gmail_send_email succeeded | to=%s | subject=%s", to, subject)
+        return f"Email successfully sent to **{to}** with subject: \"{subject}\"."
+    except Exception as exc:
+        logger.error("gmail_send_email failed: %s", exc)
+        return f"Failed to send email: {exc}"
+
+
+def _send_email(to: str, subject: str, body_html: str) -> str:
+    """
+    Sync wrapper around _send_email_async for use in the sync agentic loop.
+    Uses asyncio.run() to bridge the async MCP client call.
+    """
+    return asyncio.run(_send_email_async(to, subject, body_html))
 
 
 def _dispatch_tool(tool_name: str, tool_input: dict) -> str:
@@ -178,7 +212,7 @@ def _dispatch_tool(tool_name: str, tool_input: dict) -> str:
             airline=tool_input.get("airline"),
         )
     elif tool_name == "send_email":
-        return _send_email_stub(
+        return _send_email(
             to=tool_input["to"],
             subject=tool_input["subject"],
             body_html=tool_input["body_html"],
