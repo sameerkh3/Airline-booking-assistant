@@ -19,7 +19,8 @@ import ReasoningPanel from './ReasoningPanel.jsx'
 import './App.css'
 
 export default function App() {
-  // Display messages: { role: "user" | "assistant", content: string }[]
+  // Display messages: { id: string, role: "user" | "assistant", content: string }[]
+  // IDs are stable UUIDs generated at creation time — used as React list keys.
   const [messages, setMessages] = useState([])
   // Reasoning trace from the last agent turn
   const [reasoning, setReasoning] = useState([])
@@ -35,8 +36,8 @@ export default function App() {
     const trimmed = text.trim()
     if (!trimmed || loading) return
 
-    // Optimistically append the user message
-    setMessages(prev => [...prev, { role: 'user', content: trimmed }])
+    // Optimistically append the user message with a stable ID
+    setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'user', content: trimmed }])
     setLoading(true)
 
     try {
@@ -51,12 +52,14 @@ export default function App() {
       }
 
       const data = await res.json()
-      setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
+      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: data.reply }])
       setReasoning(data.reasoning ?? [])
     } catch (err) {
+      // Remove the optimistically-added user message before showing the error
+      // so the chat doesn't show an orphaned user bubble paired with an error reply.
       setMessages(prev => [
-        ...prev,
-        { role: 'assistant', content: `⚠️ Error: ${err.message}. Please try again.` },
+        ...prev.slice(0, -1),
+        { id: crypto.randomUUID(), role: 'assistant', content: '⚠️ Something went wrong. Please try again.' },
       ])
     } finally {
       setLoading(false)
