@@ -138,6 +138,8 @@
 }
 
 .bubble.assistant {
+  /* Full width so wide tables don't overflow the message row */
+  max-width: 100%;
   background: var(--color-assistant-bubble);
   color: var(--color-text);
   border-bottom-left-radius: 4px;
@@ -150,12 +152,14 @@
 .bubble.assistant strong { color: var(--color-text); }
 .bubble.assistant em { opacity: 0.9; }
 
-/* Markdown tables */
+/* Markdown tables — scrollable wrapper prevents overflow on narrow viewports */
 .bubble.assistant table {
   border-collapse: collapse;
   width: 100%;
   margin: 0.5em 0;
   font-size: 0.85rem;
+  display: block;
+  overflow-x: auto;
 }
 .bubble.assistant th,
 .bubble.assistant td {

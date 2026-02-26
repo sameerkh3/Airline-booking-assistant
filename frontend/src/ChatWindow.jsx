@@ -14,6 +14,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import './ChatWindow.css'
 
 // 4 prompt cards shown in the empty state (2×2 grid)
@@ -107,7 +108,9 @@ export default function ChatWindow({ messages, loading, onSubmit, onReset }) {
             <div className={`bubble ${msg.role}`}>
               {msg.role === 'assistant' ? (
                 // Render markdown for assistant messages (tables, bold, etc.)
+                // HTML is disabled by default; if you ever add rehype-raw, pair it with rehype-sanitize.
                 <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
                   components={{
                     // Open links in new tab for safety
                     a: ({ href, children }) => (
