@@ -10,11 +10,14 @@ Run from the backend/ directory for a smoke-test:
 """
 
 import json
+import logging
 from pathlib import Path
 
 import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Config (must match ingest.py)
@@ -29,10 +32,15 @@ EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 # ---------------------------------------------------------------------------
 # Module-level singletons — loaded once, reused across all requests
 # ---------------------------------------------------------------------------
-_model = SentenceTransformer(EMBEDDING_MODEL)
-_index = faiss.read_index(str(INDEX_PATH))
-_metadata: list[dict] = json.loads(META_PATH.read_text(encoding="utf-8"))
-_texts: list[str] = json.loads(TEXTS_PATH.read_text(encoding="utf-8"))
+try:
+    _model = SentenceTransformer(EMBEDDING_MODEL)
+    _index = faiss.read_index(str(INDEX_PATH))
+    _metadata: list[dict] = json.loads(META_PATH.read_text(encoding="utf-8"))
+    _texts: list[str] = json.loads(TEXTS_PATH.read_text(encoding="utf-8"))
+except FileNotFoundError as exc:
+    raise RuntimeError(
+        f"RAG store not found ({exc.filename}). Run: python -m rag.ingest"
+    ) from exc
 
 
 # ---------------------------------------------------------------------------

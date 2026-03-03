@@ -2,10 +2,10 @@
 Anthropic tool schema definitions for the airline booking agent.
 
 `TOOLS` is passed directly to `client.messages.create(tools=TOOLS)`.
-The three tools defined here map 1-to-1 to the implementations in executor.py:
+The three tools defined here map 1-to-1 to the implementations in tools_impl.py:
   - flight_search  → _flight_search()
   - rag_lookup     → _rag_lookup()
-  - send_email     → _send_email_stub() [real MCP call wired in ABA-8]
+  - send_email     → _send_email() via Zapier Gmail MCP
 """
 
 TOOLS: list[dict] = [

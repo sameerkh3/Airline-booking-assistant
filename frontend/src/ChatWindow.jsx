@@ -14,6 +14,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import './ChatWindow.css'
 
 // 4 prompt cards shown in the empty state (2×2 grid)
@@ -85,9 +86,9 @@ export default function ChatWindow({ messages, loading, onSubmit, onReset }) {
             <p className="greeting-subtitle">How can I help you today?</p>
 
             <div className="cards-grid" role="list" aria-label="Quick-start prompts">
-              {PROMPT_CARDS.map((card, i) => (
+              {PROMPT_CARDS.map((card) => (
                 <button
-                  key={i}
+                  key={card.title}
                   className="prompt-card"
                   onClick={() => handleCardClick(card.prompt)}
                   disabled={loading}
@@ -102,12 +103,14 @@ export default function ChatWindow({ messages, loading, onSubmit, onReset }) {
         )}
 
         {/* Message history (chat mode) */}
-        {messages.map((msg, i) => (
-          <div key={i} className={`message-row ${msg.role}`}>
+        {messages.map((msg) => (
+          <div key={msg.id} className={`message-row ${msg.role}`}>
             <div className={`bubble ${msg.role}`}>
               {msg.role === 'assistant' ? (
                 // Render markdown for assistant messages (tables, bold, etc.)
+                // HTML is disabled by default; if you ever add rehype-raw, pair it with rehype-sanitize.
                 <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
                   components={{
                     // Open links in new tab for safety
                     a: ({ href, children }) => (
