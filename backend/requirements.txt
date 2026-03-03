@@ -15,5 +15,8 @@ sentence-transformers==3.4.1
 # Environment variable management
 python-dotenv==1.0.1
 
-# MCP client SDK — used to connect to the Zapier MCP server for Gmail send_email
+# HTTP client — used by the SerpAPI flight search adapter (Phase 2)
+httpx>=0.27.0
+
+# MCP client SDK — used to connect to the Gmail MCP server for send_email
 mcp>=1.0.0

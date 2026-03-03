@@ -19,7 +19,7 @@ import logging
 import anthropic
 
 from agent.dispatch import dispatch_tool
-from agent.system_prompt import SYSTEM_PROMPT
+from agent.system_prompt import get_system_prompt
 from agent.tools import TOOLS
 
 logger = logging.getLogger(__name__)
@@ -70,7 +70,7 @@ def run_agent(message: str, history: list[dict]) -> tuple[str, list[str]]:
         response = _client.messages.create(
             model=MODEL,
             max_tokens=MAX_TOKENS,
-            system=SYSTEM_PROMPT,
+            system=get_system_prompt(),
             tools=TOOLS,
             messages=messages,
         )

@@ -18,6 +18,7 @@ def dispatch_tool(tool_name: str, tool_input: dict) -> str:
         return _flight_search(
             origin=tool_input["origin"],
             destination=tool_input["destination"],
+            departure_date=tool_input.get("departure_date", ""),
             cabin_class=tool_input.get("cabin_class", "Economy"),
             airline_preference=tool_input.get("airline_preference"),
         )

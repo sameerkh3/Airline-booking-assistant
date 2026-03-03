@@ -5,7 +5,7 @@ Anthropic tool schema definitions for the airline booking agent.
 The three tools defined here map 1-to-1 to the implementations in tools_impl.py:
   - flight_search  → _flight_search()
   - rag_lookup     → _rag_lookup()
-  - send_email     → _send_email() via Zapier Gmail MCP
+  - send_email     → _send_email()
 """
 
 TOOLS: list[dict] = [
@@ -35,6 +35,13 @@ TOOLS: list[dict] = [
                         "(e.g. 'Dubai'). Case-insensitive."
                     ),
                 },
+                "departure_date": {
+                    "type": "string",
+                    "description": (
+                        "Departure date in YYYY-MM-DD format (e.g. '2026-03-15'). "
+                        "Required for real-time flight search."
+                    ),
+                },
                 "cabin_class": {
                     "type": "string",
                     "description": (
@@ -50,7 +57,7 @@ TOOLS: list[dict] = [
                     ),
                 },
             },
-            "required": ["origin", "destination"],
+            "required": ["origin", "destination", "departure_date"],
         },
     },
     {
